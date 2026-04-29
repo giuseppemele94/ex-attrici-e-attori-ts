@@ -110,7 +110,7 @@ La funzione deve restituire un array di oggetti Actress.
 Può essere anche un array vuoto.
 
 * */
-async function getAllActresses(): Promise<Actress []> {
+async function getAllActresses(): Promise<Actress[]> {
 
   try {
     const response = await fetch(`http://localhost:3333/actresses`);
@@ -147,11 +147,11 @@ La funzione deve restituire un array contenente elementi di tipo Actress oppure 
 
 async function getActresses(ids: number[]): Promise<(Actress | null)[]> {
   try {
-  const actresses = await Promise.all(
-    ids.map(id => getActress(id))
-  );
-  return actresses;
-  }catch  (error) {
+    const actresses = await Promise.all(
+      ids.map(id => getActress(id))
+    );
+    return actresses;
+  } catch (error) {
     if (error instanceof Error) {
       console.error("Errore durante il recupero dei dati", error);
     } else {
@@ -160,5 +160,165 @@ async function getActresses(ids: number[]): Promise<(Actress | null)[]> {
     return [];
 
   }
-  
+
+}
+
+/* BONUS 1* 
+Crea le funzioni:
+
+- createActress
+- updateActress
+
+Utilizza gli Utility Types:
+Omit: per creare un'attrice senza passare id, che verrà generato casualmente.
+Partial: per permettere l’aggiornamento di qualsiasi proprietà tranne id e name.*/
+
+function createActress(data: Omit<Actress, "id">): Actress {
+  return {
+    id: Math.floor(Math.random() * 1000),
+    ...data,
+  };
+}
+
+function updateActress(actress: Actress, updates: Partial<Actress>): Actress {
+  return {
+    ...actress,
+    ...updates,
+    id: actress.id,
+    name: actress.name
+  }
+}
+
+/* BONUS 2* 
+Crea un tipo Actor, che estende Person con le seguenti differenze rispetto ad Actress:
+
+- known_for: una tuple di 3 stringhe
+- awards: array di una o due stringhe
+- nationality: le stesse di Actress più:
+Scottish, New Zealand, Hong Kong, German, Canadian, Irish.
+Implementa anche le versioni getActor, getAllActors, getActors, createActor, updateActor.
+*/
+
+type Actor = Person & {
+  known_for: [string, string, string];
+  awards: [string] | [string, string];
+  nationality:
+  | Actress["nationality"]
+  | "New Zealand"
+  | "Hong Kong"
+  | "German"
+  | "Canadian"
+  | "Irish"
+};
+
+function isActor(data: unknown): data is Actor {
+  if (typeof data !== "object" || data === null) {
+    return false;
+  }
+
+  return (
+
+    "id" in data && typeof data.id === "number" &&
+    "name" in data && typeof data.name === "string" &&
+    "birth_year" in data && typeof data.birth_year === "number" &&
+    (!("death_year" in data) || typeof data.death_year === "number") &&
+    "biography" in data && typeof data.biography === "string" &&
+    "image" in data && typeof data.image === "string" &&
+    "most_famous_movies" in data && Array.isArray(data.most_famous_movies) && data.most_famous_movies.length === 3 &&
+    data.most_famous_movies.every(movie => typeof movie === "string") &&
+    "awards" in data && typeof data.awards === "string" &&
+    "nationality" in data && typeof data.nationality === "string" &&
+    "known_for" in data && Array.isArray(data.known_for) && data.known_for.length === 3 && data.known_for.every(movie => typeof movie === "string") &&
+    "awards" in data &&
+    Array.isArray(data.awards) &&
+    (data.awards.length === 1 || data.awards.length === 2) &&
+    data.awards.every(award => typeof award === "string")
+  );
+}
+
+async function getActor(id: number): Promise<Actor | null> {
+
+  try {
+    const response = await fetch(`http://localhost:3333/actors/${id}`);
+    if (!response.ok) {
+      return null;
+    }
+    //se la risposta è andata a buon fine raccolgo il risultato
+    const data: unknown = await response.json();
+
+    if (!isActor(data)) {
+      throw new Error("Formato dati non valido");
+    }
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero dei dati", error);
+    } else {
+      console.error("Errore sconosciuto", error);
+    }
+    return null;
+
+  }
+}
+
+async function getAllActors(): Promise<Actor[]> {
+
+  try {
+    const response = await fetch(`http://localhost:3333/actresses`);
+    if (!response.ok) {
+      return [];
+    }
+    //se la risposta è andata a buon fine raccolgo il risultato
+    const data: unknown = await response.json();
+
+    if (!Array.isArray(data)) {
+      throw new Error("Formato dati non valido");
+    }
+    return data.filter(isActor);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero dei dati", error);
+    } else {
+      console.error("Errore sconosciuto", error);
+    }
+    return [];
+
+  }
+}
+
+
+async function getActors(ids: number[]): Promise<(Actor | null)[]> {
+  try {
+    const actors = await Promise.all(
+      ids.map(id => getActor(id))
+    );
+    return actors;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero dei dati", error);
+    } else {
+      console.error("Errore sconosciuto", error);
+    }
+    return [];
+
+  }
+
+}
+
+
+
+function createActor(data: Omit<Actor, "id">): Actor {
+  return {
+    id: Math.floor(Math.random() * 1000),
+    ...data,
+  };
+}
+
+function updateActors(actor: Actor, updates: Partial<Actor>): Actor {
+  return {
+    ...actor,
+    ...updates,
+    id: actor.id,
+    name: actor.name
+  }
 }
