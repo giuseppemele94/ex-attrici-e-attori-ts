@@ -1,5 +1,4 @@
-/* SNACK 1* 
-📌 Milestone 1
+/* *  Milestone 1
 Crea un type alias Person per rappresentare una persona generica.
 
 Il tipo deve includere le seguenti proprietà:
@@ -20,8 +19,7 @@ type Person = {
   image: string,
 }
 
-/* SNACK-2 *
-📌 Milestone 2
+/* Milestone-2 *
 Crea un type alias Actress che oltre a tutte le proprietà di Person,
  aggiunge le seguenti proprietà:
 
@@ -48,7 +46,7 @@ type Actress = Person & {
   | "Chinese"
 }
 
-/* SNACK-3*
+/* Milestone-3*
 
 Crea una funzione getActress che, dato un id, effettua una chiamata a:
 
@@ -99,6 +97,40 @@ async function getActress(id: number): Promise<Actress | null> {
       console.error("Errore sconosciuto", error);
     }
     return null;
+
+  }
+}
+
+/* Milestone 4
+Crea una funzione getAllActresses che chiama:
+
+GET /actresses
+La funzione deve restituire un array di oggetti Actress.
+
+Può essere anche un array vuoto.
+
+* */
+async function getAllActresses(): Promise<Actress []> {
+
+  try {
+    const response = await fetch(`http://localhost:3333/actresses`);
+    if (!response.ok) {
+      return [];
+    }
+    //se la risposta è andata a buon fine raccolgo il risultato
+    const data: unknown = await response.json();
+
+    if (!Array.isArray(data)) {
+      throw new Error("Formato dati non valido");
+    }
+    return data.filter(isActress);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero dei dati", error);
+    } else {
+      console.error("Errore sconosciuto", error);
+    }
+    return [];
 
   }
 }
